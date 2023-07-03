@@ -1,9 +1,4 @@
-"""
-Даний скрипт треба помістити у корінь папки, яку мусимо розібрати.
-Він розкладатиме всі файли з усього дерева папок (в т.ч. поточної папки) по новим папкам (archives, video, audio, documents, images, unknown),
-які створюватимуться у батьківському каталозі поточної папки.
-"""
-import pathlib, os, shutil
+import sys, pathlib, os, shutil
 
 new_folders = ['archives', 'audio', 'documents', 'images', 'unknown', 'video'] # Назви папок, що створяться
 end_docs = ['.doc', '.docx', '.txt', '.pdf', '.xlsx', '.pptx', '.odt', '.rtf', '.xml', '.docm', '.dot', '.dotx',
@@ -13,9 +8,7 @@ end_videos = ['.avi', '.mp4', '.mov', '.mkv'] # Перелік розширен�
 end_audios = ['.mp3', '.ogg', '.wav', '.amr'] # Перелік розширень папки 'audio'
 end_archives = ['.zip', '.gz', '.tar'] # Перелік розширень папки 'archives'
 
-suffixes = [['.zip', '.gz', '.tar'], ['.mp3', '.ogg', '.wav', '.amr'], ['.doc', '.docx', '.txt', '.pdf', '.xlsx',
-           '.pptx', '.odt', '.rtf', '.xml', '.docm', '.dot', '.dotx', '.ott', '.uot', '.fodt'], ['.jpeg', '.png',
-           '.jpg', '.svg'], [], ['.avi', '.mp4', '.mov', '.mkv']]
+
 res_docs = [] # Перелік файлів в кінцевій папці 'documents'
 res_images = [] # Перелік файлів в кінцевій папці 'images'
 res_unknowns = [] # Перелік файлів в кінцевій папці 'unknown'
@@ -33,9 +26,14 @@ def translit(leter: str) -> str:  # Приймає символ, поверта�
                       't','u','f','kh','ts','ch','sh','shch','iu','ia', 'A','B','V','H','G','D','E','Ye','Zh','Z','Y',
                       'I','Yi','Y','K','L','M','N','O','P','R','S','T','U','F','Kh','Ts','Ch','Sh','Shch','Yu','Ya')
     dict_translit = dict(zip(alphabet_cyrillic, alphabet_latin))
+    leter_latin = []
+    for i in range(65, 91):
+        leter_latin.append(chr(i))
+    for i in range(97, 123):
+        leter_latin.append(chr(i))
     if leter in alphabet_cyrillic:
         return dict_translit[leter]
-    elif leter in alphabet_latin or leter in '0123456789':
+    elif leter in leter_latin or leter in '0123456789':
         return leter
     else:
         return '_'
@@ -52,74 +50,60 @@ def normalize(name: str) -> str: # Перейменовує строку
 
 def parse_recursion(path: pathlib.Path):
     for i in path.iterdir():
-        if i.is_dir():
+        if i.is_dir(): #Папки не перейменовуємо, бо вони видаляютьсям
             parse_recursion(i)
             if len(os.listdir(i)) == 0:
-                print('Поточна пуста папка: ', i)
                 os.rmdir(i)
         else:
             file_name = i.stem
             file_name_new = str(i.parent) + '\\' + normalize(file_name) + i.suffix
             a = pathlib.Path(i.rename(file_name_new))
             if a.suffix in end_docs: # Переміщення до відповідної папки
-                print(a, ' - документ')
-                new_path_folder = pathlib.Path(dir_parent + '\\' + new_folders[2] + '\\' + a.name)
-                print(new_path_folder)
+                new_path_folder = pathlib.Path('D:' + '\\' + new_folders[2] + '\\' + a.name)
                 if not pathlib.Path(new_path_folder).exists():
                     b = a.rename(new_path_folder)
-                    print('New path = ', b)
                     res_docs.append(b.name)
                     end_sort_direct.append(b.suffix)
                 else:
                     print('Файл з такою назвою вже існує', new_path_folder)
-            elif a.suffix in end_images: # Переміщення до відповідної папки
-                print(a, ' - картинка')
-                new_path_folder = pathlib.Path(dir_parent + '\\' + new_folders[3] + '\\' + a.name)
+            elif a.suffix in end_images:
+                new_path_folder = pathlib.Path('D:' + '\\' + new_folders[3] + '\\' + a.name)
                 if not pathlib.Path(new_path_folder).exists():
                     b = a.rename(new_path_folder)
-                    print('New path = ', b)
                     res_images.append(b.name)
                     end_sort_direct.append(b.suffix)
                 else:
                     print('Файл з такою назвою вже існує', new_path_folder)
-            elif a.suffix in end_videos: # Переміщення до відповідної папки
-                print(a, ' - відео')
-                new_path_folder = pathlib.Path(dir_parent + '\\' + new_folders[5] + '\\' + a.name)
+            elif a.suffix in end_videos:
+                new_path_folder = pathlib.Path('D:' + '\\' + new_folders[5] + '\\' + a.name)
                 if not pathlib.Path(new_path_folder).exists():
                     b = a.rename(new_path_folder)
-                    print('New path = ', b)
                     res_videos.append(b.name)
                     end_sort_direct.append(b.suffix)
                 else:
                     print('Файл з такою назвою вже існує', new_path_folder)
-            elif a.suffix in end_audios: # Переміщення до відповідної папки
-                print(a, ' - музика')
-                new_path_folder = pathlib.Path(dir_parent + '\\' + new_folders[1] + '\\' + a.name)
+            elif a.suffix in end_audios:
+                new_path_folder = pathlib.Path('D:' + '\\' + new_folders[1] + '\\' + a.name)
                 if not pathlib.Path(new_path_folder).exists():
                     b = a.rename(new_path_folder)
-                    print('New path = ', b)
                     res_audios.append(b.name)
                     end_sort_direct.append(b.suffix)
                 else:
                     print('Файл з такою назвою вже існує', new_path_folder)
-            elif a.suffix in end_archives: # Переміщення до відповідної папки
-                print(a, ' - архів, потребує розпакування')
-                new_path_folder = pathlib.Path(dir_parent + '\\' + new_folders[0] + '\\' + a.name)
+            elif a.suffix in end_archives:
+                new_path_folder = pathlib.Path('D:' + '\\' + new_folders[0] + '\\' + a.name)
                 if not pathlib.Path(new_path_folder).exists():
                     b = a.rename(new_path_folder)
-                    print('New path = ', b)
                     res_archives.append(b.name)
                     end_sort_direct.append(b.suffix)
-                    new_path_archive_folder = pathlib.Path(dir_parent + '\\' + new_folders[0] + '\\' + a.stem)
+                    new_path_archive_folder = pathlib.Path('D:' + '\\' + new_folders[0] + '\\' + a.stem)
                     shutil.unpack_archive(b, new_path_archive_folder)
                 else:
                     print('Файл з такою назвою вже існує', new_path_folder)
             else:
-                print(a, ' - невідомо що')
-                new_path_folder = pathlib.Path(dir_parent + '\\' + new_folders[4] + '\\' + a.name)
+                new_path_folder = pathlib.Path('D:' + '\\' + new_folders[4] + '\\' + a.name)
                 if not pathlib.Path(new_path_folder).exists():
                     b = a.rename(new_path_folder)
-                    print('New path = ', b)
                     res_unknowns.append(b.name)
                     end_sort_direct.append(b.suffix)
                     end_unknowns.append(b.suffix)
@@ -127,34 +111,35 @@ def parse_recursion(path: pathlib.Path):
                     print('Файл з такою назвою вже існує', new_path_folder)
 
 
-# Перевіряємо розташування поточного файла і створюємо папки для подальшого сортування
-path = pathlib.Path(__file__) # Адреса поточного файлу
-dir_parent = str(path.parent) # Батьківський каталог цього файлу
-for folder in new_folders: # Створення папок
-    path_folder = dir_parent + '\\' + folder
-    if not pathlib.Path(path_folder).exists():
-        mk_dir(path_folder)
-        print(f'Нова папка: {path_folder}')
-    else:
-        i = 1
-        while True:
-            path_folder_dubbing = path_folder + '(' + str(i) + ')'
-            if not pathlib.Path(path_folder_dubbing).exists():
-                mk_dir(path_folder_dubbing)
-                print(f'Нова папка: {path_folder_dubbing}')
-                break
-            else:
-                i += 1
+# створюємо папки для подальшого сортування
+def create_folder (path):
+    for folder in new_folders: # Створення папок в кореневому каталозі D:\
+        path_folder = 'D:' + '\\' + folder
+        if not pathlib.Path(path_folder).exists():
+            mk_dir(path_folder)
+            print(f'Нова папка: {path_folder}')
+        else:
+            print(f"Папка {path_folder} вже існує, сортуватимемо в неї")
+    parse_recursion(path)
+    os.rmdir(path)
+    print('Перелік усіх розширень, що зустрічались при роботі скрипта', set(end_sort_direct))
+    print("Перелік усіх розширень, які скрипту не відомі", set(end_unknowns))
+    print("Перелік файлів в кінцевій папці 'documents'", res_docs)
+    print("Перелік файлів в кінцевій папці 'images'", res_images)
+    print("Перелік файлів в кінцевій папці 'video'", res_videos)
+    print("Перелік файлів в кінцевій папці 'audio'", res_audios)
+    print("Перелік файлів в кінцевій папці 'archives'", res_archives)
+    print("Перелік файлів в кінцевій папці 'unknown'", res_unknowns)
 
-parse_recursion(path)
-print('Перелік усіх розширень, що зустрічались при роботі скрипта', set(end_sort_direct))
-print("Перелік усіх розширень, які скрипту не відомі", set(end_unknowns))
-print("Перелік файлів в кінцевій папці 'documents'", res_docs)
-print("Перелік файлів в кінцевій папці 'images'", res_images)
-print("Перелік файлів в кінцевій папці 'video'", res_videos)
-print("Перелік файлів в кінцевій папці 'audio'", res_audios)
-print("Перелік файлів в кінцевій папці 'archives'", res_archives)
-print("Перелік файлів в кінцевій папці 'unknown'", res_unknowns)
+
+def main():
+    arg = sys.argv[1]
+    path = pathlib.Path(arg)
+    create_folder(path)
+
+if __name__ == '__main__':
+    main()
+
 
 
 
