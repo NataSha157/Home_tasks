@@ -1,0 +1,8 @@
+setup.py
+clean_folder_snv/__init__.py
+clean_folder_snv/clean.py
+clean_folder_snv.egg-info/PKG-INFO
+clean_folder_snv.egg-info/SOURCES.txt
+clean_folder_snv.egg-info/dependency_links.txt
+clean_folder_snv.egg-info/entry_points.txt
+clean_folder_snv.egg-info/top_level.txt
